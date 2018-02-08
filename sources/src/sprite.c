@@ -9,19 +9,19 @@
 #include <misc.h>
 
 // Sprites general
-#define MAP_CASE        "sprite/wood_box.png"
-#define MAP_KEY			"sprite/key.png"
-#define MAP_DOOR_OPENED	"sprite/door_opened.png"
-#define MAP_DOOR_CLOSED	"sprite/door_closed.png"
+#define MAP_CASE       		"sprite/wood_box.png"
+#define MAP_KEY				"sprite/key.png"
+#define MAP_DOOR_OPENED		"sprite/door_opened.png"
+#define MAP_DOOR_CLOSED		"sprite/door_closed.png"
 
 // Scenery elements
-#define MAP_STONE		"sprite/stone.png"
-#define MAP_TREE        "sprite/tree.png"
+#define MAP_STONE			"sprite/stone.png"
+#define MAP_TREE      	    "sprite/tree.png"
 
 // Sprites of Banner
-#define BANNER_LINE		"sprite/banner_line.png"
-#define BANNER_LIFE		"sprite/banner_life.png"
-#define BANNER_BOMB		"sprite/bomb3.png"
+#define BANNER_LINE			"sprite/banner_line.png"
+#define BANNER_LIFE			"sprite/banner_life.png"
+#define BANNER_BOMB			"sprite/bomb3.png"
 #define BANNER_RANGE		"sprite/banner_range.png"
 #define BANNER_0			"sprite/banner_0.jpg"
 #define BANNER_1			"sprite/banner_1.jpg"
@@ -35,10 +35,11 @@
 #define BANNER_9			"sprite/banner_9.jpg"
 
 // Sprites of Bombs
-#define BOMB_TTL1       "sprite/bomb1.png"
-#define BOMB_TTL2       "sprite/bomb2.png"
-#define BOMB_TTL3       "sprite/bomb3.png"
-#define BOMB_TTL4       "sprite/bomb4.png"
+#define BOMB_TTL0      		"sprite/explosion.png"
+#define BOMB_TTL1       	"sprite/bomb1.png"
+#define BOMB_TTL2       	"sprite/bomb2.png"
+#define BOMB_TTL3       	"sprite/bomb3.png"
+#define BOMB_TTL4       	"sprite/bomb4.png"
 
 // Sprites of Bonus
 #define IMG_BONUS_BOMB_RANGE_INC  "sprite/bonus_bomb_range_inc.png"
@@ -51,6 +52,12 @@
 #define PLAYER_UP       "sprite/player_up.png"
 #define PLAYER_RIGHT    "sprite/player_right.png"
 #define PLAYER_DOWN     "sprite/player_down.png"
+
+// Sprites of Monsters
+#define MONSTER_LEFT     "sprite/monster_left.png"
+#define MONSTER_UP       "sprite/monster_up.png"
+#define MONSTER_RIGHT    "sprite/monster_right.png"
+#define MONSTER_DOWN     "sprite/monster_down.png"
 
 // banner
 SDL_Surface* numbers[10];
@@ -67,6 +74,12 @@ SDL_Surface* door_opened;
 SDL_Surface* door_closed;
 SDL_Surface* stone;
 SDL_Surface* tree;
+SDL_Surface* bomb4;
+SDL_Surface* bomb3;
+SDL_Surface* bomb2;
+SDL_Surface* bomb1;
+SDL_Surface* bomb0;
+
 
 // bonus
 #define NB_BONUS 4
@@ -74,6 +87,9 @@ SDL_Surface* bonus[NB_BONUS + 1];
 
 // player
 SDL_Surface* player_img[4];
+
+//monster
+SDL_Surface* monster_img[4];
 
 static void banner_load() {
 	// numbers imgs
@@ -116,6 +132,11 @@ static void map_load() {
 	stone = load_image(MAP_STONE);
 	door_opened = load_image(MAP_DOOR_OPENED);
 	door_closed = load_image(MAP_DOOR_CLOSED);
+	bomb4 = load_image(BOMB_TTL4);
+	bomb3 = load_image(BOMB_TTL3);
+	bomb2 = load_image(BOMB_TTL2);
+	bomb1 = load_image(BOMB_TTL1);
+	bomb0 = load_image(BOMB_TTL0);
 }
 
 static void map_unload() {
@@ -126,6 +147,23 @@ static void map_unload() {
 	SDL_FreeSurface(stone);
 	SDL_FreeSurface(door_opened);
 	SDL_FreeSurface(door_closed);
+}
+
+
+static void bomb_load() {
+	bomb4 = load_image(BOMB_TTL4);
+	bomb3 = load_image(BOMB_TTL3);
+	bomb2 = load_image(BOMB_TTL2);
+	bomb1 = load_image(BOMB_TTL1);
+	bomb0 = load_image(BOMB_TTL0);
+}
+
+static void bomb_unload(){
+	SDL_FreeSurface(BOMB_TTL4);
+	SDL_FreeSurface(BOMB_TTL3);
+	SDL_FreeSurface(BOMB_TTL2);
+	SDL_FreeSurface(BOMB_TTL1);
+	SDL_FreeSurface(BOMB_TTL0);
 }
 
 static void bonus_load() {
@@ -154,11 +192,25 @@ static void player_unload() {
 		SDL_FreeSurface(player_img[i]);
 }
 
+static void monster_load() {
+	monster_img[WEST] = load_image(MONSTER_LEFT);
+	monster_img[EAST] = load_image(MONSTER_RIGHT);
+	monster_img[NORTH] = load_image(MONSTER_UP);
+	monster_img[SOUTH] = load_image(MONSTER_DOWN);
+}
+
+static void monster_unload() {
+	for (int i = 0; i < 4; i++)
+		SDL_FreeSurface(monster_img[i]);
+}
+
 void sprite_load() {
 	map_load();
 	bonus_load();
 	banner_load();
 	player_load();
+	bomb_load();
+	monster_load();
 }
 
 void sprite_free() {
@@ -166,6 +218,8 @@ void sprite_free() {
 	bonus_unload();
 	banner_unload();
 	player_unload();
+	bomb_unload();
+	monster_unload();
 }
 
 SDL_Surface* sprite_get_number(short number) {
@@ -176,6 +230,11 @@ SDL_Surface* sprite_get_number(short number) {
 SDL_Surface* sprite_get_player(enum direction direction) {
 	assert(player_img[direction]);
 	return player_img[direction];
+}
+
+SDL_Surface* sprite_get_monster(enum direction direction) {
+	assert(monster_img[direction]);
+	return monster_img[direction];
 }
 
 SDL_Surface* sprite_get_banner_life() {
@@ -231,4 +290,8 @@ SDL_Surface* sprite_get_door_opened() {
 SDL_Surface* sprite_get_door_closed() {
 	assert(door_closed);
 	return door_closed;
+}
+SDL_Surface* sprite_get_bomb(){
+	assert(bomb4);
+	return bomb4;
 }

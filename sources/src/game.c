@@ -62,13 +62,14 @@ void game_banner_display(struct game* game) {
 	for (int i = 0; i < map_get_width(map); i++)
 		window_display_image(sprite_get_banner_line(), i * SIZE_BLOC, y);
 
-	int white_bloc = ((map_get_width(map) * SIZE_BLOC) - 6 * SIZE_BLOC) / 4;
+	int white_bloc = ((map_get_width(map) * SIZE_BLOC) - 11 * SIZE_BLOC) / 4;
 	int x = white_bloc;
 	y = (map_get_height(map) * SIZE_BLOC) + LINE_HEIGHT;
 	window_display_image(sprite_get_banner_life(), x, y);
 
 	x = white_bloc + SIZE_BLOC;
-	window_display_image(sprite_get_number(2), x, y);
+	window_display_image(
+			sprite_get_number(player_get_nb_pv(game_get_player(game))), x, y);
 
 	x = 2 * white_bloc + 2 * SIZE_BLOC;
 	window_display_image(sprite_get_banner_bomb(), x, y);
@@ -82,6 +83,20 @@ void game_banner_display(struct game* game) {
 
 	x = 3 * white_bloc + 5 * SIZE_BLOC;
 	window_display_image(sprite_get_number(1), x, y);
+
+	x = 4 * white_bloc + 6 * SIZE_BLOC;
+	window_display_image(sprite_get_key(), x, y);
+
+	x = 4 * white_bloc + 7* SIZE_BLOC;
+		window_display_image(
+				sprite_get_number(player_get_nb_key(game_get_player(game))), x, y);
+
+	x = 5 * white_bloc + 8 * SIZE_BLOC;
+		window_display_image(sprite_get_door_closed(), x, y);
+
+	x = 5 * white_bloc + 9* SIZE_BLOC;
+			window_display_image(
+					sprite_get_number(game->current_level), x, y);
 }
 
 void game_display(struct game* game) {
@@ -92,10 +107,27 @@ void game_display(struct game* game) {
 	game_banner_display(game);
 	map_display(game_get_current_map(game));
 	player_display(game->player);
-
 	window_refresh();
 }
 
+void pause(){
+	SDL_Event event;
+	int continu=1;
+	while (continu){
+		SDL_WaitEvent(&event);
+		switch (event.type) {
+		case SDL_KEYDOWN :
+			switch (event.key.keysym.sym) {
+				case SDLK_p :
+					continu=0;
+					break;
+				default : break;
+			}
+			break;
+		default : break;
+		}
+	}
+}
 static short input_keyboard(struct game* game) {
 	SDL_Event event;
 	struct player* player = game_get_player(game);
@@ -108,6 +140,7 @@ static short input_keyboard(struct game* game) {
 		case SDL_KEYDOWN:
 			switch (event.key.keysym.sym) {
 			case SDLK_ESCAPE:
+				game_free(game);
 				return 1;
 			case SDLK_UP:
 				player_set_current_way(player, NORTH);
@@ -126,9 +159,15 @@ static short input_keyboard(struct game* game) {
 				player_move(player, map);
 				break;
 			case SDLK_SPACE:
+				if ((player_get_nb_bomb(player)>0) &&( map_get_cell_type(map , player_get_x(player) , player_get_y (player))==CELL_EMPTY)){
+				player_dec_nb_bomb(player);
+				map_set_cell_type(map,player_get_x(player),player_get_y(player),CELL_BOMB);
+				}
 				break;
-			default:
+			case SDLK_p :
+				pause();
 				break;
+			default : break;
 			}
 
 			break;
