@@ -50,6 +50,8 @@ struct map* map_new(int width, int height)
 int map_is_inside(struct map* map, int x, int y)
 {
 	assert(map);
+	if ((x<0)||(y<0)||(x>map_get_width(map)-1)||(y>map_get_height(map)-1))
+		return 0;
 	return 1;
 }
 
@@ -75,7 +77,7 @@ int map_get_height(struct map* map)
 
 enum cell_type map_get_cell_type(struct map* map, int x, int y)
 {
-	assert(map && map_is_inside(map, x, y));
+	//assert(map && map_is_inside(map, x, y));
 	return map->grid[CELL(x,y)] & 0xf0;
 }
 
@@ -119,13 +121,40 @@ void display_scenery(struct map* map, int x, int  y, unsigned char type)
 		break;
 	}
 }
+void display_door(struct map* map, int x, int  y, unsigned char type)
+{
+	switch (type & 0x0f) { // sub-types are encoded with the 4 less significant bits
+		case DOOR_CLOSED:
+			window_display_image(sprite_get_door_closed(), x, y);
+			break;
 
+		case DOOR_OPENED:
+			window_display_image(sprite_get_door_opened(), x, y);
+			break;
+		}
+}
+void display_monster(struct map* map, int x, int  y, unsigned char type){
+	switch (type & 0x0f) { // sub-types are encoded with the 4 less significant bits
+		case MONSTER_NORTH:
+			window_display_image(sprite_get_monster(NORTH), x, y);
+			break;
+		case MONSTER_SOUTH:
+			window_display_image(sprite_get_monster(SOUTH), x, y);
+			break;
+		case MONSTER_WEST:
+			window_display_image(sprite_get_monster(WEST), x, y);
+			break;
+		case MONSTER_EAST:
+			window_display_image(sprite_get_monster(EAST), x, y);
+			break;
+	}
+}
 void map_display(struct map* map)
 {
 	assert(map != NULL);
 	assert(map->height > 0 && map->width > 0);
 
-	int x, y;
+	int x, y ;
 	for (int i = 0; i < map->width; i++) {
 	  for (int j = 0; j < map->height; j++) {
 	    x = i * SIZE_BLOC;
@@ -147,9 +176,14 @@ void map_display(struct map* map)
 	      window_display_image(sprite_get_key(), x, y);
 	      break;
 	    case CELL_DOOR:
-	      // pas de gestion du type de porte
-	      window_display_image(sprite_get_door_opened(), x, y);
+	    	display_door(map,x,y,type);
 	      break;
+	    case CELL_BOMB:
+	    	window_display_image(sprite_get_bomb(),x,y);
+	    	break;
+	    case CELL_MONSTER:
+			display_monster(map,x,y,type);
+			break;
 	    }
 	  }
 	}
@@ -160,18 +194,18 @@ struct map* map_get_static(void)
 	struct map* map = map_new(STATIC_MAP_WIDTH, STATIC_MAP_HEIGHT);
 
 	unsigned char themap[STATIC_MAP_WIDTH * STATIC_MAP_HEIGHT] = {
-	  CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY,
+	  CELL_EMPTY, CELL_EMPTY, CELL_KEY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY,
 	  CELL_STONE, CELL_STONE, CELL_STONE, CELL_EMPTY, CELL_STONE, CELL_EMPTY, CELL_STONE, CELL_STONE, CELL_STONE, CELL_STONE, CELL_EMPTY, CELL_EMPTY,
 	  CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_STONE, CELL_BOX, CELL_STONE, CELL_EMPTY, CELL_EMPTY, CELL_STONE, CELL_EMPTY, CELL_EMPTY,
 	  CELL_BOX, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_STONE, CELL_BOX, CELL_STONE, CELL_EMPTY, CELL_EMPTY, CELL_STONE, CELL_EMPTY, CELL_EMPTY,
 	  CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_STONE, CELL_BOX, CELL_STONE, CELL_EMPTY, CELL_EMPTY, CELL_STONE, CELL_EMPTY, CELL_EMPTY,
-	  CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_STONE, CELL_STONE, CELL_STONE, CELL_EMPTY, CELL_EMPTY, CELL_STONE, CELL_EMPTY, CELL_EMPTY,
+	  CELL_EMPTY, CELL_EMPTY, CELL_CLOSED, CELL_EMPTY, CELL_STONE, CELL_STONE, CELL_STONE, CELL_EMPTY, CELL_EMPTY, CELL_STONE, CELL_EMPTY, CELL_EMPTY,
 	  CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY , CELL_EMPTY, CELL_EMPTY, CELL_STONE,  CELL_EMPTY, CELL_EMPTY,
-	  CELL_EMPTY, CELL_TREE, CELL_BOX, CELL_TREE, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY,  CELL_EMPTY, CELL_STONE,  CELL_EMPTY, CELL_EMPTY,
+	  CELL_EMPTY, CELL_TREE, CELL_BOX, CELL_TREE, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY,  CELL_EMPTY, CELL_STONE,  CELL_MONSTER_E, CELL_EMPTY,
 	  CELL_EMPTY, CELL_TREE, CELL_TREE, CELL_TREE, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY,  CELL_STONE,  CELL_EMPTY, CELL_EMPTY,
 	  CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_STONE,  CELL_EMPTY, CELL_EMPTY,
 	  CELL_BOX, CELL_STONE, CELL_STONE, CELL_STONE, CELL_STONE, CELL_STONE, CELL_STONE, CELL_STONE, CELL_STONE, CELL_STONE,  CELL_BOX_LIFE, CELL_EMPTY,
-	  CELL_BOX,  CELL_EMPTY, CELL_DOOR, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY,
+	  CELL_BOX,  CELL_EMPTY, CELL_CLOSED, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY, CELL_EMPTY,
 		};
 
 	for (int i = 0; i < STATIC_MAP_WIDTH * STATIC_MAP_HEIGHT; i++)

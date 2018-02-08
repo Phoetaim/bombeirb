@@ -20,6 +20,8 @@ SDL_Surface* sprite_get_key();
 SDL_Surface* sprite_get_stone();
 SDL_Surface* sprite_get_door_opened();
 SDL_Surface* sprite_get_door_closed();
+SDL_Surface* sprite_get_bomb();
+SDL_Surface* sprite_get_monster(enum direction direction);
 
 SDL_Surface* sprite_get_number(short number);
 SDL_Surface* sprite_get_banner_life();
